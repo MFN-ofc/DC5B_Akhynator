@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>... and chill ?</title>
+    <style>
+        /* Reset CSS */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        /* Body styles */
+        body {
+          font-family: 'Comic Sans MS', sans-serif;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          background-color: #A7FFEB;
+        }
+
+        .container {
+          text-align: center;
+          max-width: 500px;
+          margin: 0 auto;
+          padding: 20px;
+          border-radius: 20px;
+          box-shadow: 0 0 20px rgba(0,0,0,0.2);
+          background-color: #FFC107;
+        }
+
+        .container h1 {
+          color: #37474F;
+        }
+
+        .container .question {
+          margin-bottom: 10px;
+        }
+
+        .container label {
+          display: block;
+          font-weight: bold;
+          margin-bottom: 5px;
+        }
+
+        .container .genres {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+        }
+
+        .container .genres label {
+          width: 30%;
+        }
+
+        .container input[type="checkbox"],
+        .container select {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #cccccc;
+          border-radius: 3px;
+          background-color: #f9f9f9;
+          font-size: 14px;
+          margin-bottom: 10px;
+        }
+
+        .container input[type="submit"] {
+          width: 100%;
+          padding: 10px;
+          background-color: #4caf50;
+          color: #ffffff;
+          border: none;
+          border-radius: 3px;
+          font-size: 16px;
+          cursor: pointer;
+        }
+
+        .container h2 {
+          margin-bottom: 10px;
+        }
+
+        .container ul {
+          margin-left: 20px;
+        }
+
+        .container li {
+          margin-bottom: 5px;
+        }
+
+        .container .result {
+          margin-top: 20px;
+        }
+
+        .container .character {
+          width: 100%;
+          max-width: 200px;
+          margin: 20px auto;
+        }
+
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 1;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+          background-color: #fefefe;
+          margin: 15% auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+          max-width: 600px;
+          border-radius: 5px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+
+        .modal-header h3 {
+          margin: 0;
+        }
+
+        .modal-body p {
+          margin-bottom: 10px;
+        }
+
+        .modal-footer {
+          text-align: right;
+        }
+
+        .modal-footer button {
+          padding: 10px 20px;
+          background-color: #4caf50;
+          color: #ffffff;
+          border: none;
+          border-radius: 3px;
+          font-size: 16px;
+          cursor: pointer;
+        }
+
+        @media screen and (max-width: 600px) {
+          .container {
+            width: 100%;
+          }
+        }
+        img{
+            width: 150px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='saussine_cool.png') }}" alt="">
+        <h1>... and chill ?</h1> <br>
+
+        <form action="/" method="post">
+            <div class="question">
+                <label for="genres">Quels genres de films préférez-vous ? (Choisissez 1 à 3 genres)</label><br>
+                <div class="genres">
+                    {% for genre in genres %}
+                        <label for="{{ genre }}">
+                            <input type="checkbox" id="{{ genre }}" name="genres" value="{{ genre }}" {% if genre in selected_genres %}checked{% endif %}>
+                            {{ genre }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="question">
+                <label for="decade">Dans quelle décennie le film que vous aimeriez regarder a-t-il été produit ?</label><br>
+                <select name="decade" id="decade">
+                    {% for decade in decades %}
+                        <option value="{{ loop.index0 }}" {% if loop.index0 == selected_decade %}selected{% endif %}>{{ decade }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="question">
+                <label for="length">Quelle est la durée préférée pour le film que vous aimeriez regarder ?</label><br>
+                <select name="length" id="length">
+                    {% for length in lengths %}
+                        <option value="{{ loop.index0 }}" {% if loop.index0 == selected_length %}selected{% endif %}>{{ length }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="question">
+                <label for="classification">Quelle est la classification préférée pour le film que vous aimeriez regarder ?</label><br>
+                <select name="classification" id="classification">
+                    {% for classification in classifications %}
+                        <option value="{{ loop.index0 }}" {% if loop.index0 == selected_classification %}selected{% endif %}>{{ classification }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="submit" value="Submit">
+        </form>
+        {% if movie %}
+            <h2>Recommandation :</h2>
+            <p>{{ movie }}</p>
+            {% if other_movies %}
+                <h2>Autres films qui pourraient vous intéresser :</h2>
+                <ul>
+                    {% for other_movie in other_movies %}
+                        <li>{{ other_movie }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <button onclick="showModal()">Voir les résultats</button>
+        {% endif %}
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Résultats des films</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>{{ movie }}</p>
+                {% if other_movies %}
+                <h4>Autres films qui pourraient vous intéresser :</h4>
+                <ul>
+                    {% for other_movie in other_movies %}
+                    <li>{{ other_movie }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button onclick="reloadPage()">Recommencer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show modal
+        function showModal() {
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Reload page
+        function reloadPage() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

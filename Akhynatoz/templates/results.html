@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Résultats des films</title>
+    <style>
+        /* Styles CSS pour la mise en page des résultats */
+        body {
+            font-family: 'Comic Sans MS', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #A7FFEB;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            background-color: #FFC107;
+        }
+
+        .container h1 {
+            color: #37474F;
+            margin-bottom: 20px;
+        }
+
+        .container .recommandation {
+            margin-bottom: 10px;
+        }
+
+        .container .other-films {
+            margin-bottom: 20px;
+        }
+
+        .container .other-films ul {
+            margin-left: 20px;
+            text-align: left;
+        }
+
+        .container .other-films li {
+            margin-bottom: 5px;
+        }
+
+        .container .back-button {
+            margin-top: 20px;
+        }
+        .film-reco{
+            color:red;
+        }
+
+        .container .back-button button {
+            padding: 10px 20px;
+            background-color: #37474F;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 3px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        img{
+            width: 150px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='saussine_cool.png') }}" alt="">
+
+        <h1>Après Analyse Très Poussée (AATP)</h1>
+
+        <div class="recommandation">
+            <h4>Recommandation :</h4>
+            <h2 class="film-reco"><i>{{ movie }}</i></h2>
+
+
+        </div>
+        
+        <hr>
+        
+        <div class="other-films">
+            <h4>Autres films avec les plus grandes probabilités :</h4>
+            <ul>
+            {% for movie, probability in top_movies_probs %}
+                <li>{{ movie }} ({{ probability }})</li>
+            {% endfor %}
+            </ul>
+        </div>
+        <!-- ... code HTML existant ... -->
+
+{% if feature_importance %}
+<h4>Importance des fonctionnalités :</h4>
+<ul>
+    {% for feature, importance in feature_importance.items() %}
+        <li>{{ feature }} : {{ importance }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
