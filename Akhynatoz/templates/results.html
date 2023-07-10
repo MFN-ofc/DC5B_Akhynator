@@ -87,11 +87,13 @@
         <div class="other-films">
             <h4>Autres films avec les plus grandes probabilités :</h4>
             <ul>
-            {% for movie, probability in top_movies_probs %}
-                <li>{{ movie }} ({{ probability }})</li>
-            {% endfor %}
+                <li class="film-reco">{{ movie }}</li>
+                {% for movie, probability in top_movies_probs %}
+                    <li>{{ movie }}</li>
+                {% endfor %}
             </ul>
         </div>
+        
         <!-- ... code HTML existant ... -->
 
 {% if feature_importance %}
