@@ -2,16 +2,12 @@ from flask import Flask, render_template, request, redirect, url_for
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.utils import resample
 import csv
 import ssl
-from sklearn.tree import DecisionTreeClassifier
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
 app = Flask(__name__, static_url_path='/static')
-
 
 # Charger les données à partir d'un fichier CSV distant
 data = pd.read_csv('https://raw.githubusercontent.com/MFN-ofc/dc5b_scrapping_robert_rouquet/main/scrapping%20akinatorzer/fichier%20parse2%203.csv', delimiter=';', quoting=csv.QUOTE_NONE)
@@ -77,8 +73,6 @@ def index():
         selected_classification_str = classifications[int(selected_classification)]
         selected_classification_num = le_classifications.transform([selected_classification_str])[0]
 
-        selected_genres = request.form.getlist('genres')
-
         # Convertir les genres sélectionnés en valeurs numériques
         selected_genres_nums = [le_genres.transform([genre.strip()])[0] for genre in selected_genres]
 
@@ -92,9 +86,10 @@ def index():
             'Classification': [selected_classification_num]
         })
 
-        selected_data['Genre1'] = selected_data['Genre1'].apply(lambda x: x if x != -1 else selected_data['Genre1'].mode().iloc[0])
-        selected_data['Genre2'] = selected_data['Genre2'].apply(lambda x: x if x != -1 else selected_data['Genre2'].mode().iloc[0])
-        selected_data['Genre3'] = selected_data['Genre3'].apply(lambda x: x if x != -1 else selected_data['Genre3'].mode().iloc[0])
+        # Appliquer des poids personnalisés aux features liées aux genres
+        #genre_weights = [1.1, 1.1, 1.1]  # Poids pour Genre1, Genre2, Genre3 respectivement
+        #for i, genre_col in enumerate(['Genre1', 'Genre2', 'Genre3']):
+         #   selected_data[genre_col] = selected_data[genre_col] * genre_weights[i]
 
         # Filtrer les données en fonction des préférences spécifiques de l'utilisateur
         filtered_data = data[
@@ -107,21 +102,58 @@ def index():
         ]
 
         # Créer un classifieur Random Forest et l'entraîner
-        clf = RandomForestClassifier(random_state=0, class_weight='balanced')
+        clf = RandomForestClassifier(
+            n_estimators=300,
+            criterion='log_loss',
+            max_depth=25,
+            min_samples_split=4,
+            min_samples_leaf=10,
+            min_weight_fraction_leaf=0.0,
+            max_features='auto',
+            max_leaf_nodes=None,
+            bootstrap=True,
+            oob_score=False,
+            n_jobs=None,
+            random_state=0,
+            verbose=0,
+            class_weight='balanced',
+            ccp_alpha=0.0,
+            max_samples=None
+        )
+
         X = filtered_data[['Genre1', 'Genre2', 'Genre3', 'Decade', 'Length', 'Classification']]
         y = filtered_data['Nom']
         X.loc[X['Genre2'] == -1, 'Genre2'] = X.loc[X['Genre2'] == -1, 'Genre1']
         X.loc[X['Genre3'] == -1, 'Genre3'] = X.loc[X['Genre3'] == -1, 'Genre1']
         clf.fit(X, y)
 
+        feature_importance = clf.feature_importances_
+        feature_names = ['Genre1', 'Genre2', 'Genre3', 'Decade', 'Length', 'Classification']
+        feature_importance_dict = dict(zip(feature_names, feature_importance))
+        print(feature_importance_dict)
+
         # Prédire le film
         movie = clf.predict(selected_data)
+
         probas = clf.predict_proba(selected_data)[0]
-        top_indices = probas.argsort()[-6:-1][::-1]
+        top_indices = (-probas).argsort()[:6]  # Sélectionner les indices triés par valeurs prédites décroissantes
         top_movies = y.iloc[top_indices].tolist()
         top_probabilities = [probas[i] for i in top_indices]
         top_probabilities = [f"{prob*100:.2f}%" for prob in top_probabilities]
+        print(top_probabilities)
+        # Récupérer la probabilité du premier film retenu
+        first_movie_probability = top_probabilities[0]
 
+        # Retirer la probabilité du premier film retenu de la liste des probabilités
+        top_probabilities = top_probabilities[1:]
+
+        # Associer les probabilités triées aux films correspondants
+        top_movies_probs = list(zip(top_movies, top_probabilities))
+
+        # Insérer le premier film retenu avec sa probabilité à la première position
+        top_movies_probs.insert(0, (movie[0], first_movie_probability))
+
+        
         return redirect(url_for('results', movie=movie, top_movies=top_movies, top_probabilities=top_probabilities))
 
     # Obtention des listes de genres, décennies, durées et classifications pour l'affichage dans le formulaire
@@ -134,25 +166,12 @@ def index():
 
 @app.route('/results')
 def results():
-
     movie = request.args.get('movie')
     top_movies = request.args.getlist('top_movies')
     top_probabilities = request.args.getlist('top_probabilities')
     movie = movie.strip("['']")
-
-    clf = RandomForestClassifier(random_state=0,class_weight='balanced')
-    X = data[['Genre1', 'Genre2', 'Genre3', 'Decade', 'Length', 'Classification']]
-    y = data['Nom']
-    X.loc[X['Genre2'] == -1, 'Genre2'] = X.loc[X['Genre2'] == -1, 'Genre1']
-    X.loc[X['Genre3'] == -1, 'Genre3'] = X.loc[X['Genre3'] == -1, 'Genre1']
-    clf.fit(X, y)
-
-    # Afficher l'importance des fonctionnalités
-    feature_importance = clf.feature_importances_
-    feature_names = ['Genre1', 'Genre2', 'Genre3', 'Decade', 'Length', 'Classification']
-    feature_importance_dict = dict(zip(feature_names, feature_importance))
-
-    return render_template('results.html', movie=movie, top_movies_probs=zip(top_movies, top_probabilities), feature_importance=feature_importance_dict)
+    
+    return render_template('results.html', movie=movie, top_movies_probs=zip(top_movies, top_probabilities))
 
 if __name__ == '__main__':
     app.run(debug=True)
