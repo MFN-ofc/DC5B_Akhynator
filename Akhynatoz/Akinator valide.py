@@ -87,9 +87,9 @@ def index():
         })
 
         # Appliquer des poids personnalisés aux features liées aux genres
-        #genre_weights = [1.1, 1.1, 1.1]  # Poids pour Genre1, Genre2, Genre3 respectivement
-        #for i, genre_col in enumerate(['Genre1', 'Genre2', 'Genre3']):
-         #   selected_data[genre_col] = selected_data[genre_col] * genre_weights[i]
+        genre_weights = [1.1, 1.1, 1.1]  # Poids pour Genre1, Genre2, Genre3 respectivement
+        for i, genre_col in enumerate(['Genre1', 'Genre2', 'Genre3']):
+            selected_data[genre_col] = selected_data[genre_col] * genre_weights[i]
 
         # Filtrer les données en fonction des préférences spécifiques de l'utilisateur
         filtered_data = data[
