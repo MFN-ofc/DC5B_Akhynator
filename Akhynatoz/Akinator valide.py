@@ -102,24 +102,7 @@ def index():
         ]
 
         # Créer un classifieur Random Forest et l'entraîner
-        clf = RandomForestClassifier(
-            n_estimators=300,
-            criterion='log_loss',
-            max_depth=25,
-            min_samples_split=4,
-            min_samples_leaf=10,
-            min_weight_fraction_leaf=0.0,
-            max_features='auto',
-            max_leaf_nodes=None,
-            bootstrap=True,
-            oob_score=False,
-            n_jobs=None,
-            random_state=0,
-            verbose=0,
-            class_weight='balanced',
-            ccp_alpha=0.0,
-            max_samples=None
-        )
+        clf = RandomForestClassifier()
 
         X = filtered_data[['Genre1', 'Genre2', 'Genre3', 'Decade', 'Length', 'Classification']]
         y = filtered_data['Nom']
