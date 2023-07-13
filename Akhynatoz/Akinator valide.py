@@ -110,10 +110,10 @@ def index():
         X.loc[X['Genre3'] == -1, 'Genre3'] = X.loc[X['Genre3'] == -1, 'Genre1']
         clf.fit(X, y)
 
-        feature_importance = clf.feature_importances_
-        feature_names = ['Genre1', 'Genre2', 'Genre3', 'Decade', 'Length', 'Classification']
-        feature_importance_dict = dict(zip(feature_names, feature_importance))
-        print(feature_importance_dict)
+        #feature_importance = clf.feature_importances_
+        #feature_names = ['Genre1', 'Genre2', 'Genre3', 'Decade', 'Length', 'Classification']
+        #feature_importance_dict = dict(zip(feature_names, feature_importance))
+        #print(feature_importance_dict)
 
         # Prédire le film
         movie = clf.predict(selected_data)
