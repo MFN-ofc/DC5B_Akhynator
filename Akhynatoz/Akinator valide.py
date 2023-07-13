@@ -134,7 +134,6 @@ def index():
         top_movies_probs = list(zip(top_movies, top_probabilities))
 
         # Insérer le premier film retenu avec sa probabilité à la première position
-        top_movies_probs.insert(0, (movie[0], first_movie_probability))
 
         
         return redirect(url_for('results', movie=movie, top_movies=top_movies, top_probabilities=top_probabilities))
